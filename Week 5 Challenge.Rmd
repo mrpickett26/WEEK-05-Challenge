@@ -86,18 +86,27 @@ x%>%
 #Generate a sampling distribution of mean runtimeMinutes for each decade by [a] drawing 1000 samples of 100 movies from each decade and, for each sample, [b] calculating the mean runtimeMinutes and the standard deviation in runtimeMinutes for each decade. Use either the do(reps) * formulation from {mosaic}, the rerun() function from {purrr}, or the rep_sample_n() workflow from {infer} to generate your these sampling distributions (see Module 12).
 library(infer)
 library(mosaic)
-reps<-1000
-n<-100
+library(dplyr)
+library(purrr)
 x%>%
- group_by(decade)%>%
-  replicate(reps,rnorm(n))->samples %>%
+rep_sample_n(size=100,reps=1000)%>%
+  group_by(decade)%>%
   summarise(
-    mean = mean(samples$runtimeMinutes,na.rm = TRUE),
-    sd = sd(samples$runtimeMinutes,na.rm = TRUE),
-    std_err_mean<-std_mean(samples$runtimeMinutes)
+    mean = mean(runtimeMinutes,na.rm = TRUE),
+    sd = sd(runtimeMinutes,na.rm = TRUE),
+    std_err_mean<-std_mean(runtimeMinutes)
   )%>%
  as.data.frame(x)->results4
 
+
+
+
+
+
+
+split.data.frame(x, x$decade)
+  filter(x, decade=="20s",decade=="30s",decade=="40s",decade=="50s",decade=="60s",decade=="70s")%>%
+as.data.frame(x)->results4
 
 # 
 # x<- as.data.frame(x)
