@@ -1,0 +1,157 @@
+---
+title: "Challenge in Class Feb 17"
+author: "Madison Pickett"
+date: "2/17/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+df<- "https://raw.githubusercontent.com/difiore/ada-2022-datasets/main/IMDB-movies.csv"
+d<- read_csv(df, col_names=TRUE)
+library(dplyr)
+s<-filter(d, startYear>=1920& startYear<=1979, runtimeMinutes>=60 & runtimeMinutes<=180)%>%mutate(decade=case_when(startYear%in%1920:1929~"20s",startYear%in%1930:1939~"30s",startYear%in%1940:1949~"40s",startYear%in%1950:1959~"50s",startYear%in%1960:1969~"60s",startYear%in%1970:1979~"70s"))
+
+#visualizing distribution of data using ggplot
+library(ggplot2)
+library(dplyr)
+library(hrbrthemes)
+
+x%>%
+  group_by(decade)%>%
+   ggplot(aes(x=runtimeMinutes)) + geom_histogram() + facet_wrap(~decade) ->p
+ print(p)
+ 
+
+# mydata20=filter(x, decade=="20s")
+# mydata30=filter(x, decade=="30s")
+# mydata40=filter(x, decade=="40s")
+# mydata50=filter(x, decade=="50s")
+# mydata60=filter(x, decade=="60s")
+# mydata70=filter(x, decade=="70s")
+# h2<-ggplot(data=mydata20, aes(runtimeMinutes)) + 
+#   geom_histogram()
+# h3<-ggplot(data=mydata30, aes(runtimeMinutes)) + 
+#   geom_histogram()
+# h4<-ggplot(data=mydata40, aes(runtimeMinutes)) + 
+#   geom_histogram()
+# h5<-ggplot(data=mydata50, aes(runtimeMinutes)) + 
+#   geom_histogram()
+# h6<-ggplot(data=mydata60, aes(runtimeMinutes)) + 
+#   geom_histogram()
+# h7<-ggplot(data=mydata70, aes(runtimeMinutes)) + 
+#   geom_histogram()
+# library(cowplot)
+# conc<-plot_grid(h2,h3, h4,h5,h6,h7,nrow=3)
+# calculating sample mean and sd
+x%>%
+ group_by(decade)%>%
+  summarise(
+    mean = mean(runtimeMinutes,na.rm = TRUE),
+    sd = sd(runtimeMinutes,na.rm = TRUE)
+  )%>%
+ as.data.frame(x)->results
+
+#Draw a single sample of 100 movies, without replacement, from each decade and calculate the single sample mean and single sample standard deviation in runtimeMinutes for each decades. Recall that your single sample mean for each decade is an estimate of the population mean for each decade.
+std_mean <- function(x) sd(x)/sqrt(length(x))
+
+x%>%
+ group_by(decade)%>%
+  sample_n(runtimeMinutes, 100, replace=FALSE, weight = NULL, .env = NULL) %>%
+  summarise(
+    mean = mean(runtimeMinutes,na.rm = TRUE),
+    sd = sd(runtimeMinutes,na.rm = TRUE),
+    std_err_mean<-std_mean(runtimeMinutes)
+  )%>%
+ as.data.frame(x)->results2
+
+#Calculate for each decade the standard error around your estimate of the population mean runtimeMinutes based on the standard deviation and sample size (n=100 movies) of your single sample.
+std_mean <- function(x) sd(x)/sqrt(length(x))
+x%>%
+ group_by(decade)%>%
+  sample_n(runtimeMinutes, 100, replace=FALSE, weight = NULL, .env = NULL) %>%
+  summarise(
+    mean = mean(runtimeMinutes,na.rm = TRUE),
+    sd = sd(runtimeMinutes,na.rm = TRUE),
+    std_err_mean<-std_mean(runtimeMinutes)
+  )%>%
+ as.data.frame(x)->results3
+
+#Compare these estimates to the actual population mean runtimeMinutes for each decade and to the calculated SE in the population mean for samples of size 100 based on the population standard deviation for each decade.
+
+
+#Between this generation of randomly sampled 100 data points and the population, there was the largest difference between means for the 60s. Though the 20s showed the highest standard error and standard deviation, it is a product of random sampling for this particular iteration that the 60s showed the largest difference in mean. For a greater number of iterations, I predict that the 20s will show the greatest difference in mean. The standard error for the sample was overall higher than for the population as was sd, however, much as I said above I believe that this variability is due to sampling and will become more uniform as I increase the repitions, or iterations of sampling.
+
+
+#Generate a sampling distribution of mean runtimeMinutes for each decade by [a] drawing 1000 samples of 100 movies from each decade and, for each sample, [b] calculating the mean runtimeMinutes and the standard deviation in runtimeMinutes for each decade. Use either the do(reps) * formulation from {mosaic}, the rerun() function from {purrr}, or the rep_sample_n() workflow from {infer} to generate your these sampling distributions (see Module 12).
+library(infer)
+library(mosaic)
+reps<-1000
+n<-100
+x%>%
+ group_by(decade)%>%
+  replicate(reps,rnorm(n))->samples %>%
+  summarise(
+    mean = mean(samples$runtimeMinutes,na.rm = TRUE),
+    sd = sd(samples$runtimeMinutes,na.rm = TRUE),
+    std_err_mean<-std_mean(samples$runtimeMinutes)
+  )%>%
+ as.data.frame(x)->results4
+
+
+# 
+# x<- as.data.frame(x)
+# x%>%
+# group_by(decade)%>%
+#   summarise(
+#    mean = mean(runtimeMinutes,na.rm = TRUE),
+#    sd = sd(runtimeMinutes,na.rm = TRUE),
+#    std_err_mean<-std_mean(runtimeMinutes)
+# )%>%
+# rep_sample_n(x, size=1,  reps = 1000)%>%
+# as.data.frame(x)->results5
+# 
+# 
+# 
+# sf<-s[ , c("runtimeMinutes", "decade","primaryTitle")]  
+# reps<-1000
+# sf%>%
+#  rerun(1000)
+#  group_by(decade)%>%
+#  sample_n(primaryTitle, 100, replace=TRUE) %>%
+#   summarise(
+#     mean = mean(runtimeMinutes,na.rm = TRUE),
+#     sd = sd(runtimeMinutes,na.rm = TRUE),
+#   )%>%
+#  as.data.frame(sf)->results46
+# 
+# rerun(1000)
+#   
+# data.frame() %>%
+#   setNnames("results")
+# 
+# summarise((overall_mean=mean(runtimeMinutes)), overall_sd=sd(runtimeMinutes))
+# 
+#           
+#           
+# stand_dev<-sd(x$runtimeMinutes)
+# mea_n<-mean(x$runtimeMinutes)
+# 
+# 
+# sd_and_mean20<-sd_and_mean(mydata20$runtimeMinutes)
+# x<-(s$runtimeMinutes s$decade)
+# y<- s$decade
+# d<-c(x,y)
+# 
+# twenties<-filter(x==20)
+# df_x<- as.data.frame(x)
+# p<-ggplot(data = df, mapping = aes(Length, Count),
+# 
+#           
+#           
+#           
+# #challenge 2
+# library(tidyverse)
+
+```
+
