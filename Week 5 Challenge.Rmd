@@ -101,7 +101,7 @@ d<-do(reps)*sample_n(group_by(x,decade),100, replace=FALSE) %>%
   )%>%
  as.data.frame(md)->results5
 
-
+x%>%
 group_by(decade)%>%
   ggplot(aes(x=runtimeMinutes)) + geom_histogram() + facet_wrap(~decade) ->p
 print(p)
@@ -135,9 +135,48 @@ ggplot(z,aes(age,height))+geom_point(aes(colour=gender))+scale_color_discrete("G
 
 ggplot(z,aes(age,weight))+geom_point(aes(colour=gender))+scale_color_discrete("Gender")+xlab("age")+ylab("weight")+theme(axis.line=element_line(colour = "black", size=0.3))
 
-z$age <- as.factor(z$age)
-ggplot(z, aes(x = age, y = c(height,weight))) +
-    geom_point()
+# QQ plot and histograms 
+
+ h2<-ggplot(z,aes(height)) + 
+   geom_histogram(bins=30)
+ h3<-ggplot(data=z, aes(age)) + 
+   geom_histogram(bins=30)
+ h4<-ggplot(data=z, aes(weight)) + 
+   geom_histogram(bins=30)
+ h5<-ggplot(data=z, aes(zombies_killed)) + 
+   geom_histogram(bins=30)
+ h6<-ggplot(data=z, aes(years_of_education)) + 
+   geom_histogram(bins=30)
+
+ library(cowplot)
+conc<-plot_grid(h2,h3, h4,h5,h6,nrow=3)
+
+library(ggpubr)
+ggqqplot(z,x="height",
+         color="gender",
+         palette=c("#0073C2FF","#FC4E07"),
+         ggtheme=theme_pubclean())+ ylab("height")
+
+ggqqplot(z,x="weight",
+         color="gender",
+         palette=c("#0073C2FF","#FC4E07"),
+         ggtheme=theme_pubclean())+ ylab("weight")
+
+ggqqplot(z,x="years_of_education",
+         color="gender",
+         palette=c("#0073C2FF","#FC4E07"),
+         ggtheme=theme_pubclean())+ ylab("years_of_education")
+
+ggqqplot(z,x="age",
+         color="gender",
+         palette=c("#0073C2FF","#FC4E07"),
+         ggtheme=theme_pubclean())+ ylab("age")
+
+ggqqplot(z,x="zombies_killed",
+         color="gender",
+         palette=c("#0073C2FF","#FC4E07"),
+         ggtheme=theme_pubclean())+ ylab("zombies_killed")
+
 
 #    
 #    summarise(
