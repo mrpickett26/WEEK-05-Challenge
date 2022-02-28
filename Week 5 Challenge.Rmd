@@ -113,7 +113,7 @@ z<- read_csv(df, col_names=TRUE)
 n<-1000
 s_std<- function(x) sqrt(sum((x - mean(x))^2)/(n - 1))
  z%>%
-   summarize_at(vars(c(height,weight,age, zombies_killed,years_of_education)),funs(mean,s_std))%>%
+   summarize_at(vars(c(height,weight,age, zombies_killed,years_of_education)),funs(mean,s_std)%>%
    as.data.frame(z)->result6
 
 library(ggplot2)
@@ -134,22 +134,16 @@ z%>%
 ggplot(z,aes(age,height))+geom_point(aes(colour=gender))+scale_color_discrete("Gender")+xlab("age")+ylab("height")+theme(axis.line=element_line(colour = "black", size=0.3))
 
 ggplot(z,aes(age,weight))+geom_point(aes(colour=gender))+scale_color_discrete("Gender")+xlab("age")+ylab("weight")+theme(axis.line=element_line(colour = "black", size=0.3))
+#height seems more related to age among both genders, weight seems less related
 
 # QQ plot and histograms 
 
- h2<-ggplot(z,aes(height)) + 
-   geom_histogram(bins=30)
- h3<-ggplot(data=z, aes(age)) + 
-   geom_histogram(bins=30)
- h4<-ggplot(data=z, aes(weight)) + 
-   geom_histogram(bins=30)
- h5<-ggplot(data=z, aes(zombies_killed)) + 
-   geom_histogram(bins=30)
- h6<-ggplot(data=z, aes(years_of_education)) + 
-   geom_histogram(bins=30)
+ggplot(z,aes(height)) + geom_histogram(bins=30)
+ggplot(data=z, aes(age)) + geom_histogram(bins=30)
+ggplot(data=z, aes(weight)) + geom_histogram(bins=30)
+ggplot(data=z, aes(zombies_killed)) + geom_histogram(bins=30)
+ggplot(data=z, aes(years_of_education)) + geom_histogram(bins=30)
 
- library(cowplot)
-conc<-plot_grid(h2,h3, h4,h5,h6,nrow=3)
 
 library(ggpubr)
 ggqqplot(z,x="height",
@@ -176,6 +170,35 @@ ggqqplot(z,x="zombies_killed",
          color="gender",
          palette=c("#0073C2FF","#FC4E07"),
          ggtheme=theme_pubclean())+ ylab("zombies_killed")
+
+# height, age and weight look normally distributes, zombies killed and years of education do not
+
+# sample 50 zombies from the zombie apocalypse
+CI = function(x, level = 0.95) {
+  alpha <- 1 - level
+  ci = mean(x) + c(-1, 1) * qnorm(1 - (alpha / 2)) * sqrt(var(x) / length(x))
+  return(ci)
+}
+
+library(dplyr)
+library(infer)
+library(mosaic)
+library(dplyr)
+library(purrr)
+library(ggplot2)
+z<- read_csv(df, col_names=TRUE) 
+reps2<-199
+k<-sample_n(z, 50, replace=FALSE, weight = NULL, .env = NULL) 
+
+k%>%
+   summarize_at(vars(c(height,weight,age,zombies_killed,years_of_education)), funs(mean,s_std,std_mean,CI))%>%
+  as.data.frame(k)->result7
+
+
+kl<-do(reps2)*sample_n(z, 50, replace=FALSE, weight = NULL, .env = NULL) 
+kl%>%
+   summarize_at(vars(c(height,weight,age,zombies_killed,years_of_education)), funs(mean,s_std,std_mean,CI))%>%
+as.data.frame(kl)->result8
 
 
 #    
