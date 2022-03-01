@@ -204,7 +204,7 @@ ggplot(data=kl, aes(age)) + geom_histogram(bins=30)
 ggplot(data=kl, aes(weight)) + geom_histogram(bins=30)
 ggplot(data=kl, aes(zombies_killed)) + geom_histogram(bins=30)
 ggplot(data=kl, aes(years_of_education)) + geom_histogram(bins=30)
-# the CI values have a greater range for the 50 samples without reps and the mean and standard dev was higher for the 50 samples without reps and this could vary with iterations. The sampling with reps had a mean and sd closer to the population mean and sd, the sample with 199 reps was  normally distributed whereas the one with just 50 was more uniformly distributed 
+# the CI values have a greater range for the 50 samples without reps and the mean and standard dev was higher for the 50 samples without reps and this could vary with iterations. The sampling with reps had a mean and sd closer to the population mean and sd, the sample with 199 reps was  normally distributed whereas the one with just 50 was more uniformly distributed.
 
 
 ```
