@@ -24,28 +24,6 @@ x%>%
    ggplot(aes(x=runtimeMinutes)) + geom_histogram() + facet_wrap(~decade) ->p
  print(p)
  
-
-# mydata20=filter(x, decade=="20s")
-# mydata30=filter(x, decade=="30s")
-# mydata40=filter(x, decade=="40s")
-# mydata50=filter(x, decade=="50s")
-# mydata60=filter(x, decade=="60s")
-# mydata70=filter(x, decade=="70s")
-# h2<-ggplot(data=mydata20, aes(runtimeMinutes)) + 
-#   geom_histogram()
-# h3<-ggplot(data=mydata30, aes(runtimeMinutes)) + 
-#   geom_histogram()
-# h4<-ggplot(data=mydata40, aes(runtimeMinutes)) + 
-#   geom_histogram()
-# h5<-ggplot(data=mydata50, aes(runtimeMinutes)) + 
-#   geom_histogram()
-# h6<-ggplot(data=mydata60, aes(runtimeMinutes)) + 
-#   geom_histogram()
-# h7<-ggplot(data=mydata70, aes(runtimeMinutes)) + 
-#   geom_histogram()
-# library(cowplot)
-# conc<-plot_grid(h2,h3, h4,h5,h6,h7,nrow=3)
-# calculating sample mean and sd
 x%>%
  group_by(decade)%>%
   summarise(
@@ -96,31 +74,43 @@ d<-do(reps)*sample_n(group_by(x,decade),100, replace=FALSE) %>%
   group_by(decade) %>%
   summarise(
    mean = mean(runtimeMinutes,na.rm = TRUE),
-   sd = sd(runtimeMinutes,na.rm = TRUE) #,
-  #std_err_mean<-std_mean(runtimeMinutes)
+   sd = sd(runtimeMinutes,na.rm = TRUE),
+   std_err_mean<-std_mean(runtimeMinutes)
   )%>%
- as.data.frame(md)->results5
+ as.data.frame(d)->results5
+
+results5%>%
+  group_by(decade)%>%
+  summarise(
+  mean_sd5=mean(mean, na.rm=TRUE),
+  sd5_sd5=mean(sd, na.rm=TRUE),
+  )%>%
+  as.data.frame(results5)->results51
+std_err_mean51<-(results51$sd5_sd5)/10
 
 x%>%
-group_by(decade)%>%
-  ggplot(aes(x=runtimeMinutes)) + geom_histogram() + facet_wrap(~decade) ->p
+  group_by(decade)%>%
+  ggplot(aes(x=runtimeMinutes))+geom_histogram()+facet_wrap(~decade)->p
 print(p)
 
+# this histograms for the 50s, 60s, 70s were normally distributed, the others are uniformly distributed
+
+#looking at means, standard error and standard dev of results3 (population) and results51 (sample) the standard error of the mean for the sample is greater than the standard error of the population the means and sds are relatively comparable, but this would vary between iterations
+
+
 #challenge 2
-library(tidyverse)
-df <-"https://raw.githubusercontent.com/difiore/ada-2022-datasets/main/zombies.csv"
-z<- read_csv(df, col_names=TRUE) 
+
+df<-"https://raw.githubusercontent.com/difiore/ada-2022-datasets/main/zombies.csv"
+z <- read_csv(df, col_names=TRUE) 
 n<-1000
 s_std<- function(x) sqrt(sum((x - mean(x))^2)/(n - 1))
- z%>%
-   summarize_at(vars(c(height,weight,age, zombies_killed,years_of_education)),funs(mean,s_std)%>%
-   as.data.frame(z)->result6
+z%>%
+  summarize_at(vars(c(height,weight,age, zombies_killed,years_of_education)),funs(mean,s_std))%>%
+                 as.data.frame(z)-> result6
 
-library(ggplot2)
-library(reshape2)
- z%>%
+z%>%
   ggplot(aes(gender,height))+geom_boxplot()
- z%>%
+z%>%
   ggplot(aes(gender,weight))+geom_boxplot() 
 z%>%
   ggplot(aes(gender,age))+geom_boxplot()
@@ -134,7 +124,7 @@ z%>%
 ggplot(z,aes(age,height))+geom_point(aes(colour=gender))+scale_color_discrete("Gender")+xlab("age")+ylab("height")+theme(axis.line=element_line(colour = "black", size=0.3))
 
 ggplot(z,aes(age,weight))+geom_point(aes(colour=gender))+scale_color_discrete("Gender")+xlab("age")+ylab("weight")+theme(axis.line=element_line(colour = "black", size=0.3))
-#height seems more related to age among both genders, weight seems less related
+#height seems more related to age among both genders, weight seems less related to age among both genders 
 
 # QQ plot and histograms 
 
@@ -144,6 +134,7 @@ ggplot(data=z, aes(weight)) + geom_histogram(bins=30)
 ggplot(data=z, aes(zombies_killed)) + geom_histogram(bins=30)
 ggplot(data=z, aes(years_of_education)) + geom_histogram(bins=30)
 
+# height, weight and age are normally distributed the others are not.... the others aren't continuous so i'm not sure what i am supposed to say about it 
 
 library(ggpubr)
 ggqqplot(z,x="height",
@@ -185,7 +176,6 @@ library(infer)
 library(mosaic)
 library(dplyr)
 library(purrr)
-library(ggplot2)
 z<- read_csv(df, col_names=TRUE) 
 reps2<-199
 k<-sample_n(z, 50, replace=FALSE, weight = NULL, .env = NULL) 
@@ -200,94 +190,8 @@ kl%>%
    summarize_at(vars(c(height,weight,age,zombies_killed,years_of_education)), funs(mean,s_std,std_mean,CI))%>%
 as.data.frame(kl)->result8
 
+# the CI values have a greater range for the 50 samples without reps and the mean and standard dev was higher for the 50 samples without reps and this could vary with iterations. The sampling with reps had a mean and sd closer to the population mean and sd, I am not sure if they are normally distributed because i didn't create a qqplot or a histogram
 
-#    
-#    summarise(vv
-#     mean_height = mean(height,na.rm = TRUE),
-#     mean_weight = mean(weight,na.rm = TRUE),
-#     mean_age = mean(age,na.rm = TRUE),
-#     mean_num = mean(zombies_killed,na.rm = TRUE),
-#     mean_yrs = mean(years_of_education,na.rm = TRUE),
-#     sd_weight = s_std(weight),
-#     sd_height = s_std(height),
-#     sd_age = s_std(age),
-#     sd_num = s_std(zombies_killed),
-#     sd_yrs = s_std(years_of_education),
-#    )%>%
-# as.data.frame(z)->results5
- 
-#summarize_at c(variables pass through)
- 
- 
-# rep_sample_n(md,size=100,reps=1000,replace=TRUE)%>%rep_sample_n(md,size=100,reps=1000,replace=TRUE)%>%
-# 
-# rep_sample_n(md,size=100,reps=1000,replace=TRUE)%>%
-# md%>%
-#   group_by(decade)%>%
-#    ggplot(md, aes(x = runtimeMinutes, fill = group)) + 
-#   geom_histogram(binwidth = 0.5, color  = "white")+ facet_wrap(~decade) 
-#  print(p)
-
-
-
-
-# split.data.frame(x, x$decade)
-#   filter(x, decade=="20s",decade=="30s",decade=="40s",decade=="50s",decade=="60s",decade=="70s")%>%
-# as.data.frame(x)->results4
-
-# 
-# x<- as.data.frame(x)
-# x%>%
-# group_by(decade)%>%
-#   summarise(
-#    mean = mean(runtimeMinutes,na.rm = TRUE),
-#    sd = sd(runtimeMinutes,na.rm = TRUE),
-#    std_err_mean<-std_mean(runtimeMinutes)
-# )%>%
-# rep_sample_n(x, size=1,  reps = 1000)%>%
-# as.data.frame(x)->results5
-# 
-# 
-# 
-# sf<-s[ , c("runtimeMinutes", "decade","primaryTitle")]  
-# reps<-1000
-# sf%>%
-#  rerun(1000)
-#  group_by(decade)%>%
-#  sample_n(primaryTitle, 100, replace=TRUE) %>%
-#   summarise(
-#     mean = mean(runtimeMinutes,na.rm = TRUE),
-#     sd = sd(runtimeMinutes,na.rm = TRUE),
-#   )%>%
-#  as.data.frame(sf)->results46
-# 
-# rerun(1000)
-#   
-# data.frame() %>%
-#   setNnames("results")
-# 
-# summarise((overall_mean=mean(runtimeMinutes)), overall_sd=sd(runtimeMinutes))
-# 
-#           
-#           
-# stand_dev<-sd(x$runtimeMinutes)
-# mea_n<-mean(x$runtimeMinutes)
-# 
-# 
-# sd_and_mean20<-sd_and_mean(mydata20$runtimeMinutes)
-# x<-(s$runtimeMinutes s$decade)
-# y<- s$decade
-# d<-c(x,y)
-# 
-# twenties<-filter(x==20)
-# df_x<- as.data.frame(x)
-# p<-ggplot(data = df, mapping = aes(Length, Count),
-# 
-#           
-#           
-#           
-# #challenge 2
-# library(tidyverse)
 
 ```
 
